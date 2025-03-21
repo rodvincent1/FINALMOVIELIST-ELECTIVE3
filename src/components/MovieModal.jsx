@@ -1,10 +1,10 @@
-// src/components/MovieModal.jsx
 import React, { useEffect, useState } from "react";
 
 const API_KEY = "554977e3cfe3a7170a85791feebc49a6";
 
 const MovieModal = ({ movie, onClose }) => {
   const [trailerKey, setTrailerKey] = useState(null);
+  const [showTrailer, setShowTrailer] = useState(true); // Toggle between trailer and movie
 
   useEffect(() => {
     const fetchTrailer = async () => {
@@ -13,7 +13,9 @@ const MovieModal = ({ movie, onClose }) => {
           `https://api.themoviedb.org/3/movie/${movie.id}/videos?api_key=${API_KEY}`
         );
         const data = await res.json();
-        const trailer = data.results.find((vid) => vid.type === "Trailer" && vid.site === "YouTube");
+        const trailer = data.results.find(
+          (vid) => vid.type === "Trailer" && vid.site === "YouTube"
+        );
         if (trailer) {
           setTrailerKey(trailer.key);
         }
@@ -37,19 +39,52 @@ const MovieModal = ({ movie, onClose }) => {
         <h2 className="text-xl font-bold mb-2">{movie.title}</h2>
         <p className="text-sm text-zinc-300 mb-4">{movie.overview}</p>
 
-        {trailerKey ? (
+        {/* Toggle Buttons for Trailer and Movie */}
+        <div className="mb-4 flex space-x-2">
+          <button
+            className={`px-3 py-1 text-sm rounded ${
+              showTrailer ? "bg-red-600" : "bg-zinc-700"
+            }`}
+            onClick={() => setShowTrailer(true)}
+          >
+            Watch Trailer
+          </button>
+          <button
+            className={`px-3 py-1 text-sm rounded ${
+              !showTrailer ? "bg-red-600" : "bg-zinc-700"
+            }`}
+            onClick={() => setShowTrailer(false)}
+          >
+            Watch Movie
+          </button>
+        </div>
+
+        {showTrailer ? (
+          trailerKey ? (
+            <iframe
+              width="100%"
+              height="360"
+              src={`https://www.youtube.com/embed/${trailerKey}`}
+              title="YouTube trailer"
+              frameBorder="0"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              className="rounded"
+            ></iframe>
+          ) : (
+            <p className="text-sm text-red-400">Trailer not available</p>
+          )
+        ) : (
           <iframe
             width="100%"
             height="360"
-            src={`https://www.youtube.com/embed/${trailerKey}`}
-            title="YouTube trailer"
+            src={`https://www.2embed.cc/embed/${movie.id}`}
+            title="Movie Stream"
             frameBorder="0"
             allow="autoplay; encrypted-media"
             allowFullScreen
             className="rounded"
           ></iframe>
-        ) : (
-          <p className="text-sm text-red-400">Trailer not available</p>
         )}
       </div>
     </div>
