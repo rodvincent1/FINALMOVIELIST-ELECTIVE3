@@ -1,5 +1,6 @@
 // components/MovieCard.jsx
 import React from "react";
+import CommentSection from "./CommentSection"; // ✅ Only new import added
 
 const MovieCard = ({
   movie,
@@ -69,6 +70,11 @@ const MovieCard = ({
       >
         Watch Now
       </button>
+
+      {/* ✅ Comment Section Integration (only added part) */}
+      <div className="mt-3">
+        <CommentSection movieId={movie.id} />
+      </div>
     </div>
   );
 };
