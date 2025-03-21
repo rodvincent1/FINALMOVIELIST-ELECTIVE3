@@ -69,72 +69,56 @@ const Navbar = ({ setCurrentView, setSearchTerm, setRatingFilter, setGenreFilter
   ];
 
   return (
-    <nav className="flex flex-wrap items-center justify-between px-8 py-4 bg-white/5 backdrop-blur-md rounded-2xl shadow-md mb-6 border border-white/10">
-      {/* Logo */}
-      <h1
-        className="text-3xl font-bold cursor-pointer text-red-500 hover:text-white transition duration-300 tracking-wide font-orbitron"
-        onClick={handleHomeClick}
-      >
+    <nav className="w-full px-6 py-4 flex flex-wrap items-center justify-between backdrop-blur-lg bg-transparent z-50">
+      {/* Left: Logo */}
+      <div className="text-3xl font-bold text-red-500 cursor-pointer font-orbitron tracking-wide" onClick={handleHomeClick}>
         MOVIE<span className="text-white">LIST</span> 🎬
-      </h1>
+      </div>
 
-      {/* Search Bar */}
-      <form
-        onSubmit={handleSearchSubmit}
-        className="flex-grow max-w-2xl flex items-center bg-white/10 border border-white/20 backdrop-blur-md rounded-full px-4 py-2 mx-6"
-      >
-        <input
-          type="text"
-          placeholder="Search for movies..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full bg-transparent text-white placeholder-white outline-none px-2 font-light"
-        />
-        <button type="submit" className="text-red-400 hover:text-white text-xl ml-2">🔍</button>
-      </form>
+      {/* Right Section: Nav Items */}
+      <div className="flex flex-col md:flex-row md:items-center w-full md:w-auto gap-4 md:gap-6 mt-4 md:mt-0">
+        {/* Navigation Buttons */}
+        <div className="flex gap-4 text-sm md:text-base uppercase font-medium tracking-wider text-white font-orbitron">
+          <button onClick={handleHomeClick} className="hover:text-red-400 transition">HOME</button>
+          <button onClick={handleFavoritesClick} className="hover:text-red-400 transition">FAVORITES</button>
+          <button onClick={handleTopTmdbClick} className="hover:text-red-400 transition">TOP TMDB</button>
+        </div>
 
-      {/* Filters */}
-      <div className="flex space-x-4 items-center">
-        {/* Filter by Rating */}
+        {/* Search Input */}
+        <form onSubmit={handleSearchSubmit} className="flex items-center bg-white/10 backdrop-blur-md border border-white/20 rounded-md px-4 py-1 w-full md:w-96">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search movies..."
+            className="bg-transparent w-full text-sm text-white placeholder-white outline-none"
+          />
+          <button type="submit" className="text-red-400 hover:text-white text-lg ml-2">🔍</button>
+        </form>
+
+        {/* Rating Filter */}
         <select
-          className="bg-white/10 text-white px-3 py-2 rounded-lg border border-white/20 backdrop-blur-md focus:border-red-500 transition text-sm font-inter"
           value={selectedRating}
           onChange={handleRatingChange}
+          className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm px-3 py-1 rounded-md focus:border-red-400 transition"
         >
           <option value="" className="text-black">Rating</option>
           {[5, 6, 7, 8, 9, 10].map((rating) => (
-            <option key={rating} value={rating} className="text-black">
-              {rating}+ ⭐
-            </option>
+            <option key={rating} value={rating} className="text-black">{rating}+ ⭐</option>
           ))}
         </select>
 
-        {/* Filter by Genre */}
+        {/* Genre Filter */}
         <select
-          className="bg-white/10 text-white px-3 py-2 rounded-lg border border-white/20 backdrop-blur-md focus:border-red-500 transition text-sm font-inter"
           value={selectedGenre}
           onChange={handleGenreChange}
+          className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm px-3 py-1 rounded-md focus:border-red-400 transition"
         >
           <option value="" className="text-black">Genre</option>
           {(genres.length > 0 ? genres : defaultGenres).map((genre) => (
-            <option key={genre.id} value={genre.name} className="text-black">
-              {genre.name}
-            </option>
+            <option key={genre.id} value={genre.name} className="text-black">{genre.name}</option>
           ))}
         </select>
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="flex space-x-6 mt-4 md:mt-0 text-base font-bold uppercase tracking-wider text-white font-orbitron">
-        <button className="hover:text-red-400 transition text-lg" onClick={handleHomeClick}>
-          HOME
-        </button>
-        <button className="hover:text-red-400 transition text-lg" onClick={handleFavoritesClick}>
-          FAVORITES
-        </button>
-        <button className="hover:text-red-400 transition text-lg" onClick={handleTopTmdbClick}>
-          TOP TMDB
-        </button>
       </div>
     </nav>
   );
