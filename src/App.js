@@ -1,4 +1,3 @@
-// App.js
 import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import HeroSection from "./components/HeroSection";
@@ -20,14 +19,8 @@ const App = () => {
   const [latestMovies, setLatestMovies] = useState([]);
   const [popularMovies, setPopularMovies] = useState([]);
   const [topRatedMovies, setTopRatedMovies] = useState([]);
-  const [favorites, setFavorites] = useState(() => {
-    const storedFavorites = localStorage.getItem("FAVORITES");
-    return storedFavorites ? JSON.parse(storedFavorites) : [];
-  });
-  const [userRatings, setUserRatings] = useState(() => {
-    const storedRatings = localStorage.getItem("userRatings");
-    return storedRatings ? JSON.parse(storedRatings) : {};
-  });
+  const [favorites, setFavorites] = useState([]);
+  const [userRatings, setUserRatings] = useState({});
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [genreList, setGenreList] = useState([]);
   const [ratingFilter, setRatingFilter] = useState(null);
@@ -40,25 +33,20 @@ const App = () => {
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const [trendingRes, latestRes, popularRes, topRatedRes, genresRes] = await Promise.all([
-          fetch(`${BASE_URL}/trending/movie/week?api_key=${API_KEY}`),
-          fetch(`${BASE_URL}/movie/now_playing?api_key=${API_KEY}`),
-          fetch(`${BASE_URL}/movie/popular?api_key=${API_KEY}`),
-          fetch(`${BASE_URL}/movie/top_rated?api_key=${API_KEY}`),
-          fetch(`${BASE_URL}/genre/movie/list?api_key=${API_KEY}`)
-        ]);
+        const [trendingRes, latestRes, popularRes, topRatedRes, genresRes] =
+          await Promise.all([
+            fetch(`${BASE_URL}/trending/movie/week?api_key=${API_KEY}`),
+            fetch(`${BASE_URL}/movie/now_playing?api_key=${API_KEY}`),
+            fetch(`${BASE_URL}/movie/popular?api_key=${API_KEY}`),
+            fetch(`${BASE_URL}/movie/top_rated?api_key=${API_KEY}`),
+            fetch(`${BASE_URL}/genre/movie/list?api_key=${API_KEY}`),
+          ]);
 
-        const trendingData = await trendingRes.json();
-        const latestData = await latestRes.json();
-        const popularData = await popularRes.json();
-        const topRatedData = await topRatedRes.json();
-        const genresData = await genresRes.json();
-
-        setTrendingMovies(trendingData.results);
-        setLatestMovies(latestData.results);
-        setPopularMovies(popularData.results);
-        setTopRatedMovies(topRatedData.results);
-        setGenreList(genresData.genres);
+        setTrendingMovies((await trendingRes.json()).results);
+        setLatestMovies((await latestRes.json()).results);
+        setPopularMovies((await popularRes.json()).results);
+        setTopRatedMovies((await topRatedRes.json()).results);
+        setGenreList((await genresRes.json()).genres);
       } catch (error) {
         console.error("Error fetching movies:", error);
       }
@@ -80,45 +68,43 @@ const App = () => {
     }
   }, [ratingFilter, genreFilter]);
 
-  useEffect(() => {
-    localStorage.setItem("FAVORITES", JSON.stringify(favorites));
-  }, [favorites]);
-
-  useEffect(() => {
-    localStorage.setItem("userRatings", JSON.stringify(userRatings));
-  }, [userRatings]);
-
   const handleOpenModal = (movie) => setSelectedMovie(movie);
   const handleCloseModal = () => setSelectedMovie(null);
 
   const handleFavorite = async (movie) => {
-    const updatedFavorites = favorites.some((fav) => fav.id === movie.id)
-      ? favorites.filter((fav) => fav.id !== movie.id)
-      : [...favorites, movie];
-  
+    const alreadyFavorite = favorites.some((fav) => fav.id === movie.id);
+    let updatedFavorites;
+
+    if (alreadyFavorite) {
+      updatedFavorites = favorites.filter((fav) => fav.id !== movie.id);
+      await fetch(
+        `http://localhost:5000/api/favorites/${user.username}/${movie.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+    } else {
+      updatedFavorites = [...favorites, movie];
+      await fetch("http://localhost:5000/api/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: user.username, movie }),
+      });
+    }
+
     setFavorites(updatedFavorites);
-  
-    // Save to backend
-    await fetch("http://localhost:5000/api/favorites", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: user.username, favorites: updatedFavorites }),
-    });
   };
-  
 
   const handleRate = async (movieId, rating) => {
     const updatedRatings = { ...userRatings, [movieId]: rating };
     setUserRatings(updatedRatings);
-  
-    // Save to backend
+
     await fetch("http://localhost:5000/api/rating", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: user.username, movieId, rating }),
     });
   };
-  
 
   const handleHomeClick = () => {
     setCurrentView("HOME");
@@ -140,7 +126,9 @@ const App = () => {
   const handleSearchSubmit = async (query) => {
     if (!query) return;
     try {
-      const res = await fetch(`${BASE_URL}/search/movie?api_key=${API_KEY}&query=${query}`);
+      const res = await fetch(
+        `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${query}`
+      );
       const data = await res.json();
       setMovies(data.results);
       setCurrentView("search-results");
@@ -157,8 +145,12 @@ const App = () => {
   const filteredMovies = (moviesList) => {
     const genreId = genreFilter ? getGenreId(genreFilter) : null;
     return moviesList.filter((movie) => {
-      const ratingMatch = ratingFilter ? movie.vote_average >= ratingFilter : true;
-      const genreMatch = genreId ? movie.genre_ids.includes(genreId) : true;
+      const ratingMatch = ratingFilter
+        ? movie.vote_average >= ratingFilter
+        : true;
+      const genreMatch = genreId
+        ? movie.genre_ids.includes(genreId)
+        : true;
       return ratingMatch && genreMatch;
     });
   };
@@ -185,24 +177,21 @@ const App = () => {
   
     if (res.ok) {
       alert("Login successful!");
-      localStorage.removeItem("FAVORITES");
-      localStorage.removeItem("userRatings");
+      localStorage.setItem("USER", JSON.stringify(data.user));
       setUser(data.user);
       setFavorites(data.user.favorites || []);
-      setUserRatings(data.user.ratings || {});
+      setUserRatings(data.user.ratings || {}); // ✅ FIXED LINE
     } else {
       alert(data.error || "Login failed");
     }
-  };
+  };  
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("favorites");
-    localStorage.removeItem("token");
-    // optionally clear localStorage entirely
-    // localStorage.clear();
-    navigate("/login"); // or your route
-  };  
+    localStorage.removeItem("USER");
+    setUser(null);
+    setFavorites([]);
+    setUserRatings({});
+  };
 
   if (!user) {
     return <Login onLogin={handleLogin} />;
@@ -245,7 +234,6 @@ const App = () => {
               onRate={handleRate}
               genreList={genreList}
             />
-
             <MovieSection
               title="Latest Releases"
               movies={filteredMovies(latestMovies)}
@@ -256,7 +244,6 @@ const App = () => {
               onRate={handleRate}
               genreList={genreList}
             />
-
             {suggestedMovies.length > 0 && (
               <MovieSection
                 title="Suggested Movies"
@@ -312,8 +299,11 @@ const App = () => {
         )}
       </div>
 
-      {selectedMovie && <MovieModal movie={selectedMovie} onClose={handleCloseModal} />}
+      {selectedMovie && (
+        <MovieModal movie={selectedMovie} onClose={handleCloseModal} />
+      )}
     </div>
   );
 };
+
 export default App;
