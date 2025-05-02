@@ -24,6 +24,15 @@ db.once("open", () => console.log("✅ Connected to MongoDB"));
 const userSchema = new mongoose.Schema({
   username: String,
   password: String,
+  favorites: [Object], // or use movie IDs instead of full objects
+  ratings: {
+    type: Map,
+    of: Number,
+  },
+  comments: {
+    type: Map,
+    of: String,
+  }
 });
 
 const User = mongoose.model("User", userSchema);
@@ -55,6 +64,42 @@ app.post("/api/login", async (req, res) => {
     res.json({ message: "Login successful", user });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+//Save Favorites
+app.post("/api/favorites", async (req, res) => {
+  const { username, favorites } = req.body;
+  try {
+    const user = await User.findOneAndUpdate(
+      { username },
+      { favorites },
+      { new: true }
+    );
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save favorites" });
+  }
+});
+
+//Save rating and/or Comments
+app.post("/api/rating", async (req, res) => {
+  const { username, movieId, rating, comment } = req.body;
+
+  try {
+    const update = {};
+    if (rating !== undefined) update[`ratings.${movieId}`] = rating;
+    if (comment !== undefined) update[`comments.${movieId}`] = comment;
+
+    const user = await User.findOneAndUpdate(
+      { username },
+      { $set: update },
+      { new: true }
+    );
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save rating/comment" });
   }
 });
 

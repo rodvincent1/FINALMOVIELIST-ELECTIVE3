@@ -91,17 +91,34 @@ const App = () => {
   const handleOpenModal = (movie) => setSelectedMovie(movie);
   const handleCloseModal = () => setSelectedMovie(null);
 
-  const handleFavorite = (movie) => {
-    setFavorites((prev) =>
-      prev.some((fav) => fav.id === movie.id)
-        ? prev.filter((fav) => fav.id !== movie.id)
-        : [...prev, movie]
-    );
+  const handleFavorite = async (movie) => {
+    const updatedFavorites = favorites.some((fav) => fav.id === movie.id)
+      ? favorites.filter((fav) => fav.id !== movie.id)
+      : [...favorites, movie];
+  
+    setFavorites(updatedFavorites);
+  
+    // Save to backend
+    await fetch("http://localhost:5000/api/favorites", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: user.username, favorites: updatedFavorites }),
+    });
   };
+  
 
-  const handleRate = (movieId, rating) => {
-    setUserRatings((prev) => ({ ...prev, [movieId]: rating }));
+  const handleRate = async (movieId, rating) => {
+    const updatedRatings = { ...userRatings, [movieId]: rating };
+    setUserRatings(updatedRatings);
+  
+    // Save to backend
+    await fetch("http://localhost:5000/api/rating", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: user.username, movieId, rating }),
+    });
   };
+  
 
   const handleHomeClick = () => {
     setCurrentView("HOME");
@@ -165,19 +182,27 @@ const App = () => {
       body: JSON.stringify({ username, password }),
     });
     const data = await res.json();
-
+  
     if (res.ok) {
       alert("Login successful!");
+      localStorage.removeItem("FAVORITES");
+      localStorage.removeItem("userRatings");
       setUser(data.user);
+      setFavorites(data.user.favorites || []);
+      setUserRatings(data.user.ratings || {});
     } else {
       alert(data.error || "Login failed");
     }
   };
 
   const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem("USER");
-  };
+    localStorage.removeItem("user");
+    localStorage.removeItem("favorites");
+    localStorage.removeItem("token");
+    // optionally clear localStorage entirely
+    // localStorage.clear();
+    navigate("/login"); // or your route
+  };  
 
   if (!user) {
     return <Login onLogin={handleLogin} />;
@@ -291,5 +316,4 @@ const App = () => {
     </div>
   );
 };
-
 export default App;

@@ -29,7 +29,7 @@ const Navbar = ({
           onClick={onLogoClick}
           className="text-2xl font-bold text-secondary"
         >
-          🎬 MovieApp
+          🎬 MovieList
         </button>
       </div>
 

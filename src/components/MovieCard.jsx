@@ -1,6 +1,5 @@
-// components/MovieCard.jsx
 import React from "react";
-import CommentSection from "./CommentSection"; // ✅ Only new import added
+import CommentSection from "./CommentSection"; 
 
 const MovieCard = ({
   movie,
@@ -11,24 +10,44 @@ const MovieCard = ({
   onRate,
   genreList
 }) => {
-  const handleRatingChange = (e) => {
-    const rating = parseInt(e.target.value);
-    onRate(movie.id, rating);
+  const handleRatingKeyDown = async (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const rating = parseInt(e.target.value);
+      if (rating >= 1 && rating <= 10) {
+        try {
+          const response = await fetch(`http://localhost:5000/api/ratings`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${user.token}`,
+            },
+            body: JSON.stringify({ movieId: movie.id, rating }),
+          });
+
+          if (response.ok) {
+            onRate(movie.id, rating);
+          } else {
+            alert("Failed to save rating");
+          }
+        } catch (error) {
+          console.error("Error saving rating:", error);
+        }
+      } else {
+        alert("Please enter a rating between 1 and 10.");
+      }
+    }
   };
 
-  const genreNames = genreList
-    ?.filter((g) => movie.genre_ids.includes(g.id))
+  const genreNames = (genreList || [])  // Safeguard for undefined genreList
+    .filter((g) => (movie.genre_ids || []).includes(g.id))  // Safeguard for undefined movie.genre_ids
     .map((g) => g.name)
     .join(", ");
 
   return (
     <div className="bg-zinc-800 p-4 rounded-xl shadow-md hover:scale-105 transition duration-300 relative">
       <img
-        src={
-          movie.poster_path
-            ? `https://image.tmdb.org/t/p/w300${movie.poster_path}`
-            : "https://via.placeholder.com/200x300"
-        }
+        src={movie.poster_path ? `https://image.tmdb.org/t/p/w300${movie.poster_path}` : "https://via.placeholder.com/200x300"}
         alt={movie.title}
         className="w-full h-64 object-cover rounded-lg mb-3"
       />
@@ -43,25 +62,23 @@ const MovieCard = ({
       <div className="flex items-center justify-between mb-2">
         <button
           className={`text-sm px-3 py-1 rounded ${
-            isFavorite ? "bg-red-600" : "bg-zinc-700"
+            isFavorite || false ? "bg-red-600" : "bg-zinc-700"
           } hover:bg-red-700`}
           onClick={() => onFavorite(movie)}
         >
           {isFavorite ? "★ Favorited" : "Add to Favorites"}
         </button>
 
-        <select
+        <input
+          type="number"
+          min="1"
+          max="10"
           value={userRating || ""}
-          onChange={handleRatingChange}
-          className="bg-zinc-700 text-sm px-2 py-1 rounded"
-        >
-          <option value="">Rate</option>
-          {[...Array(10)].map((_, i) => (
-            <option key={i + 1} value={i + 1}>
-              {i + 1} ⭐
-            </option>
-          ))}
-        </select>
+          onChange={(e) => onRate(movie.id, parseInt(e.target.value) || 0)}
+          onKeyDown={handleRatingKeyDown}
+          placeholder="Rate 1-10"
+          className="bg-zinc-700 text-sm px-2 py-1 rounded w-16 text-center"
+        />
       </div>
 
       <button
@@ -71,7 +88,6 @@ const MovieCard = ({
         Watch Now
       </button>
 
-      {/* ✅ Comment Section Integration (only added part) */}
       <div className="mt-3">
         <CommentSection movieId={movie.id} />
       </div>

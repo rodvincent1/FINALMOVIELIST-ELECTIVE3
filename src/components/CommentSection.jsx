@@ -1,10 +1,8 @@
-// components/CommentSection.jsx
 import React, { useState, useEffect } from "react";
 
 const CommentSection = ({ movieId }) => {
   const [comment, setComment] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
 
   // Load saved comment from localStorage
   useEffect(() => {
@@ -12,10 +10,46 @@ const CommentSection = ({ movieId }) => {
     if (savedComment) setComment(savedComment);
   }, [movieId]);
 
-  // Save comment to localStorage
-  const handleSave = () => {
-    localStorage.setItem(`comment-${movieId}`, comment);
-    setIsEditing(false);
+  const saveComment = async (newComment) => {
+    if (newComment.trim() === "") return;
+  
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (!storedUser?.username) return console.error("User not logged in");
+  
+    try {
+      const response = await fetch(`http://localhost:5000/api/rating`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: storedUser.username,
+          movieId,
+          comment: newComment,
+        }),
+      });
+  
+      if (response.ok) {
+        setComment(newComment);
+      } else {
+        console.error("Failed to save comment");
+      }
+    } catch (error) {
+      console.error("Error saving comment:", error);
+    }
+  };  
+
+  // Handle textarea key press (Enter to submit)
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      saveComment(comment.trim());
+    }
+  };
+
+  // Handle clicking Add button
+  const handleAddClick = () => {
+    saveComment(comment.trim());
   };
 
   return (
@@ -32,47 +66,29 @@ const CommentSection = ({ movieId }) => {
 
       {!isCollapsed && (
         <>
-          {isEditing ? (
-            <div className="space-y-2">
-              <textarea
-                className="w-full text-sm p-2 rounded-md bg-zinc-800 border border-zinc-600 text-zinc-100 resize-none"
-                rows={3}
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Write your comment here..."
-              />
-              <div className="flex justify-end gap-2">
-                <button
-                  className="text-xs px-3 py-1 rounded bg-zinc-600 hover:bg-zinc-500 text-zinc-200"
-                  onClick={handleSave}
-                >
-                  Save
-                </button>
-                <button
-                  className="text-xs px-3 py-1 rounded bg-zinc-600 hover:bg-zinc-500 text-zinc-200"
-                  onClick={() => setIsEditing(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-zinc-300 whitespace-pre-line">
-              {comment ? (
-                comment
-              ) : (
-                <span className="text-zinc-500 italic">No comment yet.</span>
-              )}
-              <div className="flex justify-end mt-2">
-                <button
-                  className="text-xs px-3 py-1 rounded bg-zinc-600 hover:bg-zinc-500 text-zinc-200"
-                  onClick={() => setIsEditing(true)}
-                >
-                  {comment ? "Edit Comment" : "Add Comment"}
-                </button>
-              </div>
-            </div>
-          )}
+          <textarea
+            className="w-full text-sm p-2 rounded-md bg-zinc-800 border border-zinc-600 text-zinc-100 resize-none"
+            rows={3}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Write your comment here... Press Enter or click Add to submit."
+            onKeyDown={handleKeyDown}
+          />
+          <div className="flex justify-end mt-2">
+            <button
+              className="text-xs px-3 py-1 rounded bg-zinc-600 hover:bg-zinc-500 text-zinc-200"
+              onClick={handleAddClick}
+            >
+              Add
+            </button>
+          </div>
+          <div className="mt-2 text-sm text-zinc-300 whitespace-pre-line">
+            {comment ? (
+              comment
+            ) : (
+              <span className="text-zinc-500 italic">No comment yet.</span>
+            )}
+          </div>
         </>
       )}
     </div>
