@@ -1,4 +1,5 @@
 // components/Login.jsx
+// Login.jsx
 import React, { useState } from "react";
 
 const Login = ({ onLogin }) => {
@@ -15,12 +16,20 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-primary text-secondary">
+    <div
+      className="flex items-center justify-center h-screen bg-cover bg-center relative"
+      style={{
+        backgroundImage: "url('/cinema-elements-red-background-with-copy-space.jpg')",
+      }}
+    >
+      {/* Optional blur/dark overlay */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-0"></div>
+
       <form
         onSubmit={handleSubmit}
-        className="bg-zinc-800 p-8 rounded shadow-md flex flex-col gap-4 w-80"
+        className="bg-zinc-800 p-8 rounded shadow-md flex flex-col gap-4 w-80 z-10"
       >
-        <h2 className="text-2xl font-bold text-center mb-4">Login</h2>
+        <h2 className="text-2xl font-bold text-center mb-4 text-white">Login</h2>
 
         <input
           type="text"
@@ -49,3 +58,4 @@ const Login = ({ onLogin }) => {
 };
 
 export default Login;
+

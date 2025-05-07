@@ -163,5 +163,16 @@ app.get("/api/user/:username", async (req, res) => {
   }
 });
 
+// 🚨 For development only — do not use in production without authentication!
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = await User.find({}, "username"); // Only return usernames (not passwords!)
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch users" });
+  }
+});
+
+
 // ====== Start Server ====== //
 app.listen(PORT, () => console.log(`🚀 Backend running at http://localhost:${PORT}`));
