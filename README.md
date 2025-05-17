@@ -32,7 +32,7 @@ A full-stack movie list app where users can:
 
 ### 1. Clone the repository
 
-```bash
+bash
 git clone https://github.com/yourusername/movielist-app.git
 cd movielist-app
 
