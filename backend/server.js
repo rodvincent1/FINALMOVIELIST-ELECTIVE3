@@ -4,8 +4,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const bcrypt = require("bcrypt");
-const SALT_ROUNDS = 10;
+const bcrypt = require('bcryptjs');
+const saltRounds = 10; // The higher the number, the more secure but slower
 const app = express();
 const PORT = 5000;
 
@@ -57,30 +57,26 @@ app.post("/api/users", async (req, res) => {
     const existing = await User.findOne({ username });
     if (existing) return res.status(400).json({ error: "User already exists" });
 
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
     const user = new User({ username, password: hashedPassword });
     await user.save();
-    res.json({ message: "User registered", user: { username: user.username } });
+    res.json({ message: "User registered", user });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// Login (FIXED)
+// Login
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
   try {
-    // Find user by username only
     const user = await User.findOne({ username });
     if (!user) return res.status(400).json({ error: "Invalid credentials" });
 
-    // Compare plain password with hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
-    // Successful login
-    res.json({ message: "Login successful", user: { username: user.username } });
+    res.json({ message: "Login successful", user });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }
@@ -169,16 +165,6 @@ app.get("/api/user/:username", async (req, res) => {
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch user" });
-  }
-});
-
-// 🚨 For development only — do not use in production without authentication!
-app.get("/api/users", async (req, res) => {
-  try {
-    const users = await User.find({}, "username"); // Only return usernames (not passwords!)
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch users" });
   }
 });
 

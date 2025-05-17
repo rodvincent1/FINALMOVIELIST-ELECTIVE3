@@ -1,25 +1,102 @@
-# 🎬 Movie List
+# 🎬 MovieList Web App
 
-A sleek and modern React-based Movie List web application that allows users to explore trending, latest, popular, and top-rated movies using **The Movie Database (TMDB) API**. Users can filter movies, search by name, rate movies, leave comments, and manage a favorites list — all with a responsive, dark-themed UI styled using **Tailwind CSS**.
+A full-stack movie list app where users can:
 
----
-
-## 🚀 Features
-
-- 🔍 **Search Movies** by Title (TMDB Search API)
-- 📈 **Trending, Latest, Popular, Suggested Movies, and Top Rated**
-- 🎯 **Filter by Rating** (e.g., 5 stars and up)
-- 🎭 **Filter by Genre**
-- ❤️ **Add to Favorites** (with LocalStorage persistence)
-- ⭐ **User Ratings (1–10)** stored in LocalStorage
-- 💬 **Comment Section per Movie** (Collapsible & Editable, saved in LocalStorage)
-- 🎞️ **Watch Trailer** (YouTube Trailer via TMDB)
-- 📺 **Watch Movie Preview**
-- 🏠 **Navigation Tabs** – Home, Favorites, Top TMDB
-- 🎨 **Professional & Responsive UI** using Tailwind CSS
+- Register / Login
+- Browse movies
+- Add movies to favorites
+- Comment on movies
+- Rate movies
 
 ---
 
-## 📁 Project Structure
-FINAL-ELECMOVIELIST/ │ ├── build/ │ └── static/ │ └── index.html │ ├── public/ │ └── index.html │ ├── src/ │ ├── components/ │ │ ├── CommentSection.jsx│ │ ├── Footer.jsx │ │ ├── HeroSection.jsx │ │ ├── MovieCard.jsx │ │ ├── MovieModal.jsx │ │ ├── MovieSection.jsx │ │ └── Navbar.jsx │ ├── App.js │ ├── index.js │ └── index.css │ ├── .env ├── .gitignore ├── package.json ├── package-lock.json ├── postcss.config.js ├── tailwind.config.js └── README.md
-  
+## 🚀 Tech Stack
+
+**Frontend**: React, TailwindCSS  
+**Backend**: Node.js, Express  
+**Database**: MongoDB (Mongoose)
+
+---
+
+## 🛠️ Getting Started
+
+### ✅ Prerequisites
+
+- Node.js
+- MongoDB (local or Atlas)
+- npm or yarn
+
+---
+
+## 📦 Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/yourusername/movielist-app.git
+cd movielist-app
+
+### 1. Clone the repository
+
+#Backend
+cd backend
+npm install
+
+#Frontend
+cd ../frontend
+npm install
+
+## ⚙️ Configuration
+MongoDB
+Ensure MongoDB is running locally on the default port 27017.
+The backend connects using:
+mongodb://127.0.0.1:27017/movielist
+
+## ▶️ Running the App
+
+#Start Backend
+cd backend
+node server.js
+
+#Start Frontend
+cd frontend
+npm start
+
+
+🧪 Features
+🔐 Authentication
+Users can register and log in
+
+Login info stored in localStorage
+
+❤️ Favorites
+Logged-in users can favorite/unfavorite movies
+
+Favorite movies saved to MongoDB
+
+💬 Comments
+Logged-in users can post comments on movies
+
+Comments stored and retrieved from MongoDB
+
+⭐ Ratings
+Logged-in users can rate movies (1–5)
+
+Ratings saved per user
+
+API Endpoints (Backend)
+Method	Endpoint	Description
+POST	/api/users	Register a new user
+POST	/api/login	Login with credentials
+POST	/api/comments	Add a comment
+GET	/api/comments/:movieId	Get comments for a movie
+POST	/api/favorites	Add movie to favorites
+DELETE	/api/favorites/:username/:movieId	Remove from favorites
+POST	/api/rating	Save a rating
+GET	/api/user/:username	Get user info
+
+🧠 Known Issues
+Ensure MongoDB is running before starting the backend
+
+Avoid CORS errors by running frontend on port 3000 and backend on 5000
+

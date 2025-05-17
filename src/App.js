@@ -170,23 +170,23 @@ const App = () => {
   };
 
   const handleLogin = async (username, password) => {
-    const res = await fetch("http://localhost:5000/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await res.json();
-  
-    if (res.ok) {
-      alert("Login successful!");
-      localStorage.setItem("USER", JSON.stringify(data.user));
-      setUser(data.user);
-      setFavorites(data.user.favorites || []);
-      setUserRatings(data.user.ratings || {}); // ✅ FIXED LINE
-    } else {
-      alert(data.error || "Login failed");
-    }
-  };  
+  const res = await fetch("http://localhost:5000/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    alert("Login successful!");
+    localStorage.setItem("USER", JSON.stringify(data.user));
+    setUser(data.user);
+    setFavorites(data.user.favorites || []);
+    setUserRatings(data.user.ratings || {}); // ✅ FIXED LINE
+  } else {
+    alert(data.error || "Login failed");
+  }
+};
 
   const handleLogout = () => {
     localStorage.removeItem("USER");
