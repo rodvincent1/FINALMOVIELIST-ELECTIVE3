@@ -1,5 +1,6 @@
 // components/Login.jsx
 // Login.jsx
+
 import React, { useState } from "react";
 
 const Login = ({ onLogin }) => {
@@ -19,7 +20,7 @@ const Login = ({ onLogin }) => {
     <div
       className="flex items-center justify-center h-screen bg-cover bg-center relative"
       style={{
-        backgroundImage: "url('/cinema-elements-red-background-with-copy-space.jpg')",
+        backgroundImage: "url('/background.jpg')",
       }}
     >
       {/* Optional blur/dark overlay */}
@@ -58,4 +59,3 @@ const Login = ({ onLogin }) => {
 };
 
 export default Login;
-

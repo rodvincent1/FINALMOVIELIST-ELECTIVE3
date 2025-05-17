@@ -4,7 +4,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-
+const bcrypt = require("bcrypt");
+const SALT_ROUNDS = 10;
 const app = express();
 const PORT = 5000;
 
@@ -56,22 +57,30 @@ app.post("/api/users", async (req, res) => {
     const existing = await User.findOne({ username });
     if (existing) return res.status(400).json({ error: "User already exists" });
 
-    const user = new User({ username, password });
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+    const user = new User({ username, password: hashedPassword });
     await user.save();
-    res.json({ message: "User registered", user });
+    res.json({ message: "User registered", user: { username: user.username } });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// Login
+// Login (FIXED)
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
   try {
-    const user = await User.findOne({ username, password });
+    // Find user by username only
+    const user = await User.findOne({ username });
     if (!user) return res.status(400).json({ error: "Invalid credentials" });
 
-    res.json({ message: "Login successful", user });
+    // Compare plain password with hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
+
+    // Successful login
+    res.json({ message: "Login successful", user: { username: user.username } });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }
@@ -172,7 +181,6 @@ app.get("/api/users", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch users" });
   }
 });
-
 
 // ====== Start Server ====== //
 app.listen(PORT, () => console.log(`🚀 Backend running at http://localhost:${PORT}`));
