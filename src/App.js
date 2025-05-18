@@ -6,6 +6,7 @@ import HeroSection from "./components/HeroSection";
 import MovieSection from "./components/MovieSection";
 import MovieModal from "./components/MovieModal";
 import Login from "./components/Login";
+import axios from "axios";
 
 const API_KEY = "353ea94a6e7c360f351b58173512b084";
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -58,17 +59,16 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (ratingFilter || genreFilter) {
-      setSuggestedMovies(
-        filteredMovies([
-          ...trendingMovies,
-          ...latestMovies,
-          ...popularMovies,
-          ...topRatedMovies,
-        ])
-      );
-    }
-  }, [ratingFilter, genreFilter]);
+  if (ratingFilter || genreFilter) {
+    const combined = [
+      ...trendingMovies,
+      ...latestMovies,
+      ...popularMovies,
+      ...topRatedMovies,
+    ];
+    setSuggestedMovies(filteredMovies(combined));
+  }
+}, [ratingFilter, genreFilter, trendingMovies, latestMovies, popularMovies, topRatedMovies]);
 
   const handleOpenModal = (movie) => setSelectedMovie(movie);
   const handleCloseModal = () => setSelectedMovie(null);
@@ -144,18 +144,29 @@ const App = () => {
     return genre ? genre.id : null;
   };
 
-  const filteredMovies = (moviesList) => {
-    const genreId = genreFilter ? getGenreId(genreFilter) : null;
-    return moviesList.filter((movie) => {
-      const ratingMatch = ratingFilter
-        ? movie.vote_average >= ratingFilter
-        : true;
-      const genreMatch = genreId
+ const filteredMovies = (moviesList) => {
+  const genreId = genreFilter ? getGenreId(genreFilter) : null;
+  
+  // Use a Map to remove duplicates by movie ID
+  const uniqueMoviesMap = new Map();
+  moviesList.forEach(movie => {
+    if (!uniqueMoviesMap.has(movie.id)) {
+      uniqueMoviesMap.set(movie.id, movie);
+    }
+  });
+
+  const uniqueMovies = Array.from(uniqueMoviesMap.values());
+
+  return uniqueMovies.filter((movie) => {
+    const ratingMatch = ratingFilter ? movie.vote_average >= ratingFilter : true;
+    const genreMatch =
+      genreId && movie.genre_ids
         ? movie.genre_ids.includes(genreId)
-        : true;
-      return ratingMatch && genreMatch;
-    });
-  };
+        : !genreId; // only true if no genre selected
+
+    return ratingMatch && genreMatch;
+  });
+};
 
   const handleHeroNext = () => {
     setCurrentHeroIndex((prev) =>
@@ -169,24 +180,37 @@ const App = () => {
     );
   };
 
-  const handleLogin = async (username, password) => {
-  const res = await fetch("http://localhost:5000/api/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
-  const data = await res.json();
+ const handleRegister = async (username, password) => {
+    try {
+      const response = await axios.post("http://localhost:5000/api/users", {
+        username,
+        password,
+      });
+      alert("✅ Registered successfully!");
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      setUser(response.data.user);
+      setFavorites(response.data.user.favorites || []);
+      setUserRatings(response.data.user.ratings || {});
+    } catch (err) {
+      alert("❌ Registration failed: " + err.response.data.error);
+    }
+  };
 
-  if (res.ok) {
-    alert("Login successful!");
-    localStorage.setItem("USER", JSON.stringify(data.user));
-    setUser(data.user);
-    setFavorites(data.user.favorites || []);
-    setUserRatings(data.user.ratings || {}); // ✅ FIXED LINE
-  } else {
-    alert(data.error || "Login failed");
-  }
-};
+  const handleLogin = async (username, password) => {
+    try {
+      const response = await axios.post("http://localhost:5000/api/login", {
+        username,
+        password,
+      });
+      alert("✅ Login successful!");
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      setUser(response.data.user);
+      setFavorites(response.data.user.favorites || []);
+      setUserRatings(response.data.user.ratings || {});
+    } catch (err) {
+      alert("❌ Login failed: " + err.response.data.error);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("USER");
@@ -196,8 +220,8 @@ const App = () => {
   };
 
   if (!user) {
-    return <Login onLogin={handleLogin} />;
-  }
+  return <Login onLogin={handleLogin} onRegister={handleRegister} />;
+}
 
   return (
     <div className="bg-primary text-secondary min-h-screen">
