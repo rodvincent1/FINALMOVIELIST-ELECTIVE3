@@ -24,7 +24,7 @@ const Login = ({ onLogin, onRegister }) => {
     <div
       className="flex items-center justify-center h-screen bg-cover bg-center relative"
       style={{
-        backgroundImage: "url('/background.jpg')",
+        backgroundImage: "url('/background1.png')",
       }}
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-0"></div>
